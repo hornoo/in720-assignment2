@@ -4,7 +4,7 @@ import boto3
 import sys
 
 
-instanceTag = "Horne"
+instanceTag = "horne"
 ec2 = boto3.resource('ec2')
 
 
@@ -30,10 +30,31 @@ def help():
 
 def start_instance():
     print("starting instance")
+    foundInstance = find_instance_id(instanceTag)
+    if foundInstance.state['Name'] == 'terminated':
+        make_new_Instance(instanceTag)
+    elif foundInstance.state['Name'] == 'stopped':
+        foundInstance.start()
+    
+    
+   # foundInstance.wait_until_running()
+    
     
 
 def stop_instance():
     ptint("Stopping instance")
+
+def make_new_Instance(tagForNewInstance):
+    [newInstance] = ec2.create_instances(ImageId='ami-83da9ce3', InstanceType='t1.micro', MinCount=1, MaxCount=1)
+    print(tagForNewInstance)
+
+def find_instance_id(tagName):
+    listOfInstances = list(ec2.instances.filter(Filters=[{'Name':'tag:Name','Values':[tagName]}]))
+    if len(listOfInstances) == 1:
+        return listOfInstances[0]
+
+    
+
 
 
 
