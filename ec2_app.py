@@ -17,9 +17,9 @@ def get_command_input(argumentList):
     elif argumentList[1] in ('stop','Stop'):
         stop_instance()
     elif argumentList[1] in ('status','Status'):
-        pass
+        find_instance_id(instanceTag)
     elif argumentList[1] in ('terminate','Terminate'):
-        pass
+        terminate_instance()
 
 
 def help():
@@ -31,25 +31,29 @@ def help():
 def start_instance():
     print("starting instance")
     foundInstance = find_instance_id(instanceTag)
-    if foundInstance.state['Name'] == 'terminated':
+    print(foundInstance)
+    if foundInstance is None or foundInstance.state['Name'] == 'terminated':
         make_new_Instance(instanceTag)
     elif foundInstance.state['Name'] == 'stopped':
         foundInstance.start()
     
-    
-   # foundInstance.wait_until_running()
-    
-    
+def terminate_instance():
+    print("Terminateing instance")
+    instanceToTerminate = find_instance_id(instanceTag)
+    print(instanceToTerminate)
+    #instanceToTerminate.terminate()
 
 def stop_instance():
     ptint("Stopping instance")
 
 def make_new_Instance(tagForNewInstance):
-    [newInstance] = ec2.create_instances(ImageId='ami-83da9ce3', InstanceType='t1.micro', MinCount=1, MaxCount=1)
-    print(tagForNewInstance)
+    [newInstance] = ec2.create_instances(ImageId='ami-31490d51', InstanceType='t2.nano', MinCount=1, MaxCount=1)
+    newInstance.create_tags(Tags=[{'Key': 'Name','Value': tagForNewInstance}])
+    print(newInstance)
 
 def find_instance_id(tagName):
     listOfInstances = list(ec2.instances.filter(Filters=[{'Name':'tag:Name','Values':[tagName]}]))
+    print(len(listOfInstances))
     if len(listOfInstances) == 1:
         return listOfInstances[0]
 
