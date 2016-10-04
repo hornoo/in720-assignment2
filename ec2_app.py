@@ -35,7 +35,7 @@ def start_instance():
     elif foundInstance.state['Name'] == 'running':
         print(foundInstance.id, 'already running, no action taken.')
     elif foundInstance.state['Name'] == 'stopped':
-        print('Found stoppen instance, starting', foundInstance.id, )
+        print('Found stopped instance, starting', foundInstance.id, )
         foundInstance.start()
     
 def terminate_instance():
