@@ -34,7 +34,7 @@ def get_command_input(argumentList):
 def help():
     """Help Desctiption
     
-    Prints example commands and their desctiption to screen.
+    Prints example commands and their description to screen.
     """
     print("""\
     Command line examples:
@@ -66,8 +66,14 @@ def help():
      """)
 
 def start_instance():
+    """Find and start instance or create new instance.
+
+    Find instance to start, if no instance is found create a new instance. if found
+    instance is in an intermediate state no action is taklen.
+    """
     print("Locating instance to start")
-    foundInstance = find_instance(instanceTag,'pending','running','shutting-down','stopping','stopped')
+    foundInstance = find_instance(instanceTag,'pending','running','shutting-down',
+                                  'stopping','stopped')
     #print(foundInstance)
     if foundInstance is None:
         print('No instance found to start')
@@ -79,8 +85,13 @@ def start_instance():
         print(foundInstance.id,'found',foundInstance.state['Name'],', no action taken.')
     
 def terminate_instance():
+    """Find instance to terminate.
+
+    Locate instance in any state that is not terminated and terminate the instance.
+    """
     print('Locating instance to terminate')
-    instanceToTerminate = find_instance(instanceTag, 'pending','running','shutting-down','stopping','stopped')
+    instanceToTerminate = find_instance(instanceTag, 'pending','running',
+                                        'shutting-down','stopping','stopped')
     if instanceToTerminate is None:
         print('All instances already terminated.')
     else:
@@ -88,16 +99,26 @@ def terminate_instance():
         instanceToTerminate.terminate()
 
 def instance_status():
+    """Get state of instance.
+
+    Locate instance and print its state.
+    """
     print('Gettng instance status')
-    instance = find_instance(instanceTag, 'pending','running','shutting-down','stopping','stopped')
+    instance = find_instance(instanceTag, 'pending','running','shutting-down',
+                             'stopping','stopped')
     if instance is None:
-        print('Instance is terminated or no instances exist to show their current status.')
+        print('Instance is terminated or no instances exist to show their current', 
+              'status.')
     else:
         instance.load()
         print('Instance', instance.id, 'status' , instance.state['Name'])
         
 
 def stop_instance():
+    """Stop instance.
+    
+    Locate instance in runnind or pending state and stop the instance.
+    """
     print('Locating instance to stop')
     instanceToStop = find_instance(instanceTag, 'pending', 'running')
     if instanceToStop is None:
@@ -107,23 +128,36 @@ def stop_instance():
         instanceToStop.stop()
 
 def make_new_Instance(tagForNewInstance):
-    [newInstance] = ec2.create_instances(ImageId='ami-31490d51', InstanceType='t2.nano', MinCount=1, MaxCount=1)
+    """Create a new instance and tag.
+
+    Creates a new instance from the specified input and once created tages with 
+    specified name tag. 
+    """
+    [newInstance] = ec2.create_instances(ImageId='ami-31490d51', 
+                                         InstanceType='t2.nano', MinCount=1, 
+                                         MaxCount=1)
     newInstance.create_tags(Tags=[{'Key': 'Name','Value': tagForNewInstance}])
-    print('Created new instance with id', newInstance.id, 'and gave a Name tag of', tagForNewInstance,'.')
+    print('Created new instance with id', newInstance.id, 'and gave a Name tag of', 
+          tagForNewInstance,'.')
 
 def find_instance(tagName, *instanceStates):
-    listOfInstances = list(ec2.instances.filter(Filters=[{'Name':'tag:Name','Values':[tagName]}]))
-    print('Found the folowing instances with the tag', tagName)
+    """Worker method, finds and returns instance.
+
+    Finds instance with specified name tag and instance state specified and returns 
+    the fist instance that matches.
+    """
+    listOfInstances = list(ec2.instances.filter(Filters=[{'Name':'tag:Name',
+                                                'Values':[tagName]}]))
+    if len(listOfInstances) > 0:
+        print('Found the folowing instances with the tag', tagName)
     returnInstance = None
     for instance in listOfInstances:
         print('Instance id',instance.id,'in', instance.state['Name'], 'state.')
         if instance.state['Name'] in instanceStates:
-            returnInstance = instance 
-        
+            returnInstance = instance  
     return returnInstance
 
 #Set entry point into script, and also allow code to be resued in other modules.
 if __name__ == "__main__":
     get_command_input(sys.argv)
-
 
