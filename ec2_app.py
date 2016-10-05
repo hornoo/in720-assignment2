@@ -1,14 +1,23 @@
 #!/usr/bin/python3
 
+#Import required librarys.
 import boto3
 import sys
 
-
+#Set instance tag and instantiate ec2 boto resource.
+#To change instace name tag, edit the line below.
 instanceTag = "horne"
 ec2 = boto3.resource('ec2')
 
 def get_command_input(argumentList):
-    if len(argumentList) <= 1 or len(argumentList) > 2:
+    """Call method as requested from comand line.
+    
+    If a sting is found that matches input the arguement, the associated method 
+    is called. If the list contains no areguments or unknown argiments, help 
+    information is printed
+    """
+    if len(argumentList) < 2:
+        #if there a no arguments, show help
         help()
     elif argumentList[1] in ('start','Start'):
         start_instance()
@@ -18,12 +27,43 @@ def get_command_input(argumentList):
         instance_status()
     elif argumentList[1] in ('terminate','Terminate'):
         terminate_instance()
+    else:
+        #Show help if argument is undefined.
+        help()
 
 def help():
+    """Help Desctiption
+    
+    Prints example commands and their desctiption to screen.
+    """
     print("""\
-    This is the help function
-    will add text later.
-    """)
+    Command line examples:
+    
+    Start
+    Check if an instance exists, if it does and is not running, start the instance. 
+    If no instance is found or it has a state of terminated, this will create a new in
+    stance and tag it with the name tag set to the value of the variable 'instanceTag'    with in this script.
+    
+    example: python ec2_app.py start
+
+    Stop
+    Check if there is a running instance with the name tag set in variable 
+    'instanceTag', if found it will stop this instance, else it will do nothing.
+
+    example: python ec2_app.py stop
+
+    Status
+    Check for an instance with the name tag set in variable 'instanceTag' if found 
+    print its status to screen.
+
+    example: python ec2_app.py status
+
+    Terminate
+    Check for any instance with the name tag set in variable 'instancetag' that does 
+    not have its state set to terminated and terminate the instance.
+
+    example: python ec2_app.pt terminate
+     """)
 
 def start_instance():
     print("Locating instance to start")
@@ -51,7 +91,7 @@ def instance_status():
     print('Gettng instance status')
     instance = find_instance(instanceTag, 'pending','running','shutting-down','stopping','stopped')
     if instance is None:
-        print('Instance is terminated or no instances exist')
+        print('Instance is terminated or no instances exist to show their current status.')
     else:
         instance.load()
         print('Instance', instance.id, 'status' , instance.state['Name'])
@@ -79,9 +119,11 @@ def find_instance(tagName, *instanceStates):
         print('Instance id',instance.id,'in', instance.state['Name'], 'state.')
         if instance.state['Name'] in instanceStates:
             returnInstance = instance 
-    print('Returning', returnInstance.id)    
+        
     return returnInstance
 
+#Set entry point into script, and also allow code to be resued in other modules.
+if __name__ == "__main__":
+    get_command_input(sys.argv)
 
-get_command_input(sys.argv)
 
