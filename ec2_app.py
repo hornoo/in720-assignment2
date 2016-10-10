@@ -7,6 +7,9 @@ import sys
 #Set instance tag and instantiate ec2 boto resource.
 #To change instace name tag, edit the line below.
 instanceTag = "horne"
+instanceType = "t2.nano"
+imageID = "ami-31490d51"
+
 ec2 = boto3.resource('ec2')
 
 def get_command_input(argumentList):
@@ -111,7 +114,7 @@ def instance_status():
               'status.')
     else:
         instance.load()
-        print('Instance', instance.id, 'status' , instance.state['Name'])
+        print('Currently managed instance', instance.id, 'status is' , instance.state['Name'])
         
 
 def stop_instance():
@@ -133,8 +136,8 @@ def make_new_Instance(tagForNewInstance):
     Creates a new instance from the specified input and once created tages with 
     specified name tag. 
     """
-    [newInstance] = ec2.create_instances(ImageId='ami-31490d51', 
-                                         InstanceType='t2.nano', MinCount=1, 
+    [newInstance] = ec2.create_instances(ImageId=imageID, 
+                                         InstanceType=instanceType, MinCount=1, 
                                          MaxCount=1)
     newInstance.create_tags(Tags=[{'Key': 'Name','Value': tagForNewInstance}])
     print('Created new instance with id', newInstance.id, 'and gave a Name tag of', 
